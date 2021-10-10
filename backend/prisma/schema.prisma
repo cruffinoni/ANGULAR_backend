@@ -1,0 +1,36 @@
+datasource db {
+  url      = env("DATABASE_URL")
+  provider = "mysql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  pseudo    String   @unique
+  email     String   @unique
+  password  String
+  mmr       Int      @default(1000)
+
+  Friends Friends[]
+}
+
+model Friends {
+  id        Int        @id @default(autoincrement())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  author    Int
+  user      User       @relation(fields: [userId], references: [id])
+  userId    Int
+  status    Friendship @default(PENDING)
+}
+
+enum Friendship {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
