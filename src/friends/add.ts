@@ -42,7 +42,6 @@ export class AddFriend implements Route {
             res,
             httpCode.NOT_FOUND,
             "user not found",
-            router.getAjvInstance.errorsText(validate.errors)
           );
         }
         if (target.id == res.locals.authorization.id) {
@@ -50,7 +49,6 @@ export class AddFriend implements Route {
             res,
             httpCode.BAD_REQUEST,
             "author can't add himself",
-            router.getAjvInstance.errorsText(validate.errors)
           );
         }
         const friendship = await router.getDatabase.getFriendshipAnyRelation(
