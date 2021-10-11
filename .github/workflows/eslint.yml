@@ -12,8 +12,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v2
       - name: Install packages
-        working-directory: ./backend
         run: "npm i && npm i -D"
       - name: Run eslint
-        working-directory: ./backend
         run: "npx eslint . --ext .js,.jsx,.ts,.tsx"
