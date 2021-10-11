@@ -41,6 +41,7 @@ export class Login implements Route {
           );
         } else {
           return formatReturnedMessage(res, httpCode.OK, {
+            id: user.id,
             pseudo: req.body.pseudo,
             token: JWTClass.encode(user.id),
           });
