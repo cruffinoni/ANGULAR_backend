@@ -22,7 +22,9 @@ class JWTWrapper {
       return;
     }
     if (process.env.JWT_SECRET == undefined) {
-      console.error("JWT_SECRET is not defined and is required");
+      console.error(
+        "[jwt] JWT_SECRET is not defined in the environment and is required"
+      );
       process.exit(1);
     }
     this.secret = process.env.JWT_SECRET;
