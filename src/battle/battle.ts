@@ -1,46 +1,56 @@
-import { BattlePackage } from "../enum/eventType";
 import { v4 as uuidv4 } from "uuid";
 import { SocketWrapper } from "../socket/socketWrapper";
 import { BattleState } from "../enum/battleState";
+import { Socket } from "socket.io";
+import { BattlePackage } from "../enum/eventType";
+
+type userData = {
+  id: string;
+  socket: Socket | undefined;
+  index: number;
+};
+
+type ChatMessage = {
+  author: string;
+  message: string;
+};
+
+const isChatMessage = (x: ChatMessage | BattlePackage): x is ChatMessage =>
+  (x as ChatMessage).message !== undefined;
 
 export class Battle {
   currentState: BattleState = BattleState.STARTING;
-
-  userA_ID = "";
-  userA_idx = 0;
-  socketA: any = null;
-
-  userB_ID = "";
-  socketB: any = null;
-  userB_idx = 1;
-
+  users: userData[] = [];
   serverSocket: SocketWrapper;
-
   matchUUID: string = uuidv4();
 
   constructor(userA_ID: string, userB_ID: string, socketIO: SocketWrapper) {
-    this.userA_ID = userA_ID;
-    this.userB_ID = userB_ID;
-
+    this.users.push(
+      {
+        index: 0,
+        socket: undefined,
+        id: userA_ID,
+      },
+      {
+        index: 1,
+        socket: undefined,
+        id: userB_ID,
+      }
+    );
+    this.users[0].id = userA_ID;
+    this.users[1].id = userB_ID;
     this.serverSocket = socketIO;
-
     this.currentState = BattleState.WAITING_FOR_PLAYER_CONNECTION;
-    this.waitForPlayerConnection(this.userA_ID, this.userB_ID, 10);
+    this.waitForPlayerConnection(10);
   }
 
-  private waitForPlayerConnection(
-    userA_ID: string,
-    userB_ID: string,
-    waitDurationInSecond: number
-  ) {
+  private waitForPlayerConnection(waitDurationInSecond: number) {
     let counter = waitDurationInSecond * 1000;
     const interval = setInterval(() => {
       // DEFAULT END CONDITION
-      if (this.socketA && this.socketB) {
+      if (this.users[0].socket && this.users[1].socket) {
         console.log(
-          "MATCH:",
-          this.matchUUID,
-          "the 2 clients socket are succesfully connected"
+          `MATCH (id: ${this.matchUUID}): the 2 clients socket are successfully connected`
         );
         this.currentState = BattleState.STARTING;
         clearInterval(interval);
@@ -48,47 +58,28 @@ export class Battle {
       }
       if (counter < 0) {
         console.error(
-          "MATCH:",
-          this.matchUUID,
-          "failed to start because at least one socket isn't connect"
+          `MATCH (id: ${this.matchUUID}): failed to start because at least one socket isn't connect`
         );
-
         this.currentState = BattleState.ENDED;
         clearInterval(interval);
         return;
       }
-      if (!this.socketA) {
-        console.log("A:", userA_ID);
-        this.socketA = this.serverSocket.getUserSocket(userA_ID);
-        if (this.socketA) {
-          this.socketA.join("MATCH" + this.matchUUID);
-          this.socketA.emit("matchUUID", this.matchUUID);
-          this.socketA.emit(
-            "match-" + this.matchUUID + "userIdx",
-            this.userA_idx
-          );
+      this.users.forEach((user: userData) => {
+        if (!user.socket) {
+          user.socket = this.serverSocket.getUserSocket(user.id);
+          if (user.socket) {
+            user.socket.join("MATCH" + this.matchUUID);
+            user.socket.emit("matchUUID", this.matchUUID);
+            user.socket.emit(`match-${this.matchUUID}userIdx`, user.index);
+          }
         }
-      }
-      if (!this.socketB) {
-        console.log("B:", userB_ID);
-        this.socketB = this.serverSocket.getUserSocket(userB_ID);
-        if (this.socketB) {
-          this.socketB.join("MATCH" + this.matchUUID);
-          this.socketB.emit("matchUUID", this.matchUUID);
-          this.socketB.emit(
-            "match-" + this.matchUUID + "userIdx",
-            this.userB_idx
-          );
-        }
-      }
+      });
 
       this.sendMessageToRoom("waitingTimeRemaining", counter);
       console.log(
-        "MATCH:",
-        this.matchUUID,
-        "connection time remaining:",
-        counter / 1000,
-        "seconds"
+        `MATCH (id: ${this.matchUUID}): connection time reamaining ${
+          counter / 1000
+        } secs.`
       );
       counter -= 1000;
     }, 1000);
@@ -110,11 +101,7 @@ export class Battle {
     }, 1000);
   }
 
-  public getBattleStatus(): BattleState {
-    return this.currentState;
-  }
-
-  private sendMessageToRoom(eventType: string, data: any) {
+  private sendMessageToRoom(eventType: string, data: number | ChatMessage) {
     this.serverSocket.getServerSocket
       .to("MATCH" + this.matchUUID)
       .emit(eventType, data);
@@ -123,39 +110,20 @@ export class Battle {
   // -------------------------------------- EVENT HANDLER -----------------------------------
 
   private instantiateEvent() {
-    this.socketA.on("match-" + this.matchUUID, (evt: BattlePackage) => {
-      this.socketB.emit("match-" + this.matchUUID, evt);
+    const eventId = `match-${this.matchUUID}`;
+    this.users[0].socket?.on(eventId, (event: BattlePackage | ChatMessage) => {
+      if (isChatMessage(event)) {
+        this.sendMessageToRoom(eventId, event as ChatMessage);
+      } else {
+        this.users[1].socket?.emit(eventId, event as BattlePackage);
+      }
     });
-    this.socketB.on("match-" + this.matchUUID, (evt: BattlePackage) => {
-      this.socketA.emit("match-" + this.matchUUID, evt);
+    this.users[1].socket?.on(eventId, (event: BattlePackage | ChatMessage) => {
+      if (isChatMessage(event)) {
+        this.sendMessageToRoom(eventId, event as ChatMessage);
+      } else {
+        this.users[0].socket?.emit(eventId, event as BattlePackage);
+      }
     });
-  }
-
-  private MoveRight(evt: any) {
-    console.log("MoveRight", evt);
-  }
-
-  private MoveLeft(evt: any) {
-    console.log("MoveLeft", evt);
-  }
-
-  private Jump(evt: any) {
-    console.log("Jump", evt);
-  }
-
-  private Crouch(evt: any) {
-    console.log("Crouch", evt);
-  }
-
-  private AttackFeet(evt: any) {
-    console.log("AttackFeet", evt);
-  }
-
-  private AttackHand(evt: any) {
-    console.log("AttackHand", evt);
-  }
-
-  private AttackThrow(evt: any) {
-    console.log("AttackThrow", evt);
   }
 }

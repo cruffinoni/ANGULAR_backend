@@ -2,6 +2,8 @@ import { Server, Socket } from "socket.io";
 import { Battle } from "../battle/battle";
 import * as http from "http";
 
+// import * as LocalServer from "../server/server";
+
 /**
  * Class that is going to handle the socket of every user
  */
@@ -43,17 +45,17 @@ export class SocketWrapper {
   // ------------------------------------------ SETUP EVENT FUNCTION -------------------------------------
   /**
    * init the 2 main listener
-   * connection -> that is triggerd when a client is connection to the server
-   * disconnect -> that is triggerd when a client loose connection to the server
+   * connection -> that is triggered when a client is connection to the server
+   * disconnect -> that is triggered when a client loose connection to the server
    */
   public startSocketIO(): void {
     console.log("Start socketIO");
     this.serverSocket.on("connection", (socket: Socket) => {
       this.newConnection(socket);
     });
-    this.serverSocket.on("disconnect", (reason: any) => {
+    this.serverSocket.on("disconnect", (reason: unknown) => {
       // reason documentation: https://socket.io/docs/v3/client-socket-instance/#disconnect
-      this.onDisconnect(reason);
+      console.error("Server socket disconnected:", reason);
     });
   }
 
@@ -64,7 +66,7 @@ export class SocketWrapper {
    * @param socket the socket of the new user
    */
   private newConnection(socket: Socket): void {
-    // get in the querry param the id of the user that is connecting
+    // get in the query param the id of the user that is connecting
     const userID = socket.handshake.query.userID as string;
     this.clientMap.set(userID, socket);
 
@@ -72,11 +74,15 @@ export class SocketWrapper {
       console.log("start match with:", data);
       new Battle(data.data.userA, data.data.userB, this);
     });
+    socket.on("disconnect", (reason) => {
+      this.onUserSocketDisconnect(reason, userID);
+    });
 
     console.log("new connection arrived id:", userID);
   }
 
-  private onDisconnect(reason: any) {
-    console.log("DISCONNECTION:", reason);
+  private onUserSocketDisconnect(reason: string, id: string) {
+    console.log(`Socket id ${id} disconnected: ${reason}`);
+    this.clientMap.delete(id);
   }
 }
