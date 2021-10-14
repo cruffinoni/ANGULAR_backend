@@ -2,8 +2,6 @@ import { Server, Socket } from "socket.io";
 import { Battle } from "../battle/battle";
 import * as http from "http";
 
-// import * as LocalServer from "../server/server";
-
 /**
  * Class that is going to handle the socket of every user
  */
@@ -74,7 +72,7 @@ export class SocketWrapper {
       console.log("start match with:", data);
       new Battle(data.data.userA, data.data.userB, this);
     });
-    socket.on("disconnect", (reason) => {
+    socket.on("disconnect", (reason: string) => {
       this.onUserSocketDisconnect(reason, userID);
     });
 
