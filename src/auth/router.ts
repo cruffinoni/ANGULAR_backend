@@ -1,11 +1,12 @@
-import { SubRouter } from "../server/api/controller";
-import { Database } from "../database/database";
-import { Register } from "./register";
-import { Login } from "./login";
+import {SubRouter} from "../server/api/controller";
+import {Database} from "../database/database";
+import {Register} from "./register";
+import {Login} from "./login";
+import {Online} from "./online";
 
 export class AuthRouter extends SubRouter {
   basePath = "/auth";
-  routes = [new Register(), new Login()];
+  routes = [new Register(), new Login(), new Online()];
 
   constructor(db: Database) {
     super(db);
