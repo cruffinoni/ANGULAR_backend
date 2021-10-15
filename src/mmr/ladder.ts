@@ -1,8 +1,8 @@
-import { Route, SubRouter } from "../server/api/controller";
-import { Request, Response } from "express";
-import { formatReturnedMessage } from "../server/api/utils";
+import {Route, SubRouter} from "../server/api/controller";
+import {Request, Response} from "express";
+import {formatReturnedMessage} from "../server/api/utils";
 import httpCode from "../server/api/httpCode";
-import { User } from "@prisma/client";
+import {User} from "@prisma/client";
 import JWTClass from "../jwt/class";
 
 export class Ladder implements Route {
@@ -12,7 +12,10 @@ export class Ladder implements Route {
     router.getRouter.use(this.name, JWTClass.requireAuthorization);
     router.getRouter.get(this.name, async (req: Request, res: Response) => {
       try {
-        const limit: number = req.query.limit && JSON.parse(<string>req.query.limit) ? JSON.parse(<string>req.query.limit) : 10;
+        const limit: number =
+          req.query.limit && JSON.parse(<string>req.query.limit)
+            ? JSON.parse(<string>req.query.limit)
+            : 10;
         const ladder = await router.getDatabase.getTopLadder(limit);
         if (ladder == null) {
           return formatReturnedMessage(res, httpCode.OK, []);
