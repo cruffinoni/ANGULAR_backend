@@ -36,8 +36,8 @@ export class Register implements Route {
           req.body.pseudo
         );
         return formatReturnedMessage(res, httpCode.OK, {
+          id: user.id,
           pseudo: req.body.pseudo,
-          email: req.body.email,
           token: JWTClass.encode(user.id),
         });
       } catch (e) {
