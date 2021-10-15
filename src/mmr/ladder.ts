@@ -12,7 +12,7 @@ export class Ladder implements Route {
     router.getRouter.use(this.name, JWTClass.requireAuthorization);
     router.getRouter.get(this.name, async (req: Request, res: Response) => {
       try {
-        const limit: number = req.query.limit ? +req.query.limit : 10;
+        const limit: number = req.query.limit && JSON.parse(<string>req.query.limit) ? JSON.parse(<string>req.query.limit) : 10;
         const ladder = await router.getDatabase.getTopLadder(limit);
         if (ladder == null) {
           return formatReturnedMessage(res, httpCode.OK, []);
