@@ -1,13 +1,13 @@
-import { Server, Socket } from "socket.io";
-import { Battle } from "../battle/battle";
+import {Server, Socket} from "socket.io";
+import {Battle} from "../battle/battle";
 import * as http from "http";
 
 /**
  * Class that is going to handle the socket of every user
  */
 export class SocketWrapper {
-  private readonly serverSocket: Server;
   clientMap: Map<string, Socket> = new Map<string, Socket>();
+  private readonly serverSocket: Server;
 
   constructor(httpNetwork: http.Server | number) {
     this.serverSocket = new Server(httpNetwork, {
@@ -24,20 +24,20 @@ export class SocketWrapper {
   // ------------------------------------------------- GETTER --------------------------------------------
 
   /**
+   * return the server socket
+   * @returns the server socket
+   */
+  public get getServerSocket(): Server {
+    return this.serverSocket;
+  }
+
+  /**
    * return the socket of a specific user
    * @param userID the userID of the socket
    * @returns the socket
    */
   public getUserSocket(userID: string): Socket | undefined {
     return this.clientMap.get(userID);
-  }
-
-  /**
-   * return the server socket
-   * @returns the server socket
-   */
-  public get getServerSocket(): Server {
-    return this.serverSocket;
   }
 
   // ------------------------------------------ SETUP EVENT FUNCTION -------------------------------------

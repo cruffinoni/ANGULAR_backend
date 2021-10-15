@@ -1,6 +1,6 @@
-import { decode, sign, verify } from "jsonwebtoken";
-import { NextFunction, Request, Response } from "express";
-import { formatReturnedMessage } from "../server/api/utils";
+import {decode, sign, verify} from "jsonwebtoken";
+import {NextFunction, Request, Response} from "express";
+import {formatReturnedMessage} from "../server/api/utils";
 import httpCode from "../server/api/httpCode";
 
 export interface JWTData {
@@ -54,9 +54,17 @@ class JWTWrapper {
         "missing authorization"
       );
     }
-    response.locals.authorization = JWTClass.decode(
-      request.headers.authorization
-    );
+    try {
+      response.locals.authorization = JWTClass.decode(
+        request.headers.authorization
+      );
+    } catch (err) {
+      return formatReturnedMessage(
+        response,
+        httpCode.FORBIDDEN,
+        "invalid jwt token"
+      );
+    }
     next();
   }
 
