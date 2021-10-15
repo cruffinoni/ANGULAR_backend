@@ -1,12 +1,16 @@
 import { Server, Socket } from "socket.io";
 import { Battle } from "../battle/battle";
 import * as http from "http";
+import { FifoMatchmaker } from "../matchmaking/matchmaking";
+import { User } from ".prisma/client";
 
 /**
  * Class that is going to handle the socket of every user
  */
 export class SocketWrapper {
   private readonly serverSocket: Server;
+  private matchmaking = new FifoMatchmaker(this.startMatch, this);
+
   clientMap: Map<string, Socket> = new Map<string, Socket>();
 
   constructor(httpNetwork: http.Server | number) {
@@ -67,6 +71,21 @@ export class SocketWrapper {
     // get in the query param the id of the user that is connecting
     const userID = socket.handshake.query.userID as string;
     this.clientMap.set(userID, socket);
+    console.log("NEW CONNECTION: ", socket);
+
+    socket.on("reconnect", () => {  
+      console.log("RECONNECTION", socket);
+    });
+
+    socket.on("joinMatchMaking", (data) => {
+      console.log("joinMatchMaking:", data);
+      this.matchmaking.joinQueue(Number(data));
+    });
+
+    
+    socket.on("leaveMatchMaking", (data) => {
+      console.log("leaveMatchMaking:", data);
+    });
 
     socket.on("startMatch", (data) => {
       console.log("start match with:", data);
@@ -77,6 +96,13 @@ export class SocketWrapper {
     });
 
     console.log("new connection arrived id:", userID);
+  }
+
+  private startMatch(users: User[], instance: SocketWrapper): void {
+    if (users.length === 2) {
+      console.log("start matchmaking match with:", users);
+      new Battle(users[0].id.toString(), users[1].id.toString(), instance);
+    }
   }
 
   private onUserSocketDisconnect(reason: string, id: string) {
