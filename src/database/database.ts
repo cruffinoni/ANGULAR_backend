@@ -1,4 +1,4 @@
-import { Friends, Friendship, PrismaClient, User } from "@prisma/client";
+import {Friends, Friendship, PrismaClient, User} from "@prisma/client";
 import sha256 = require("crypto-js/sha256");
 
 export class Database {
@@ -86,6 +86,7 @@ export class Database {
       },
     });
   }
+
   async getFriendshipAnyRelation(
     user1: number,
     user2: number
