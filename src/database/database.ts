@@ -43,7 +43,7 @@ export class Database {
     });
   }
 
-  async getTopLadder(limit = 10): Promise<User[] | null> {
+  async getTopLadder(limit: number): Promise<User[] | null> {
     return await this.prismaClient.user.findMany({
       orderBy: {
         mmr: "desc",
