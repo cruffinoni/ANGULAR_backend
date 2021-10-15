@@ -1,8 +1,8 @@
-import {Route, SubRouter} from "../server/api/controller";
-import {Request, Response} from "express";
-import {formatReturnedMessage} from "../server/api/utils";
+import { Route, SubRouter } from "../server/api/controller";
+import { Request, Response } from "express";
+import { formatReturnedMessage } from "../server/api/utils";
 import httpCode from "../server/api/httpCode";
-import {User} from "@prisma/client";
+import { User } from "@prisma/client";
 import JWTClass from "../jwt/class";
 
 export class Ladder implements Route {
