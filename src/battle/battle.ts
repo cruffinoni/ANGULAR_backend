@@ -22,7 +22,9 @@ type BattleEvent = ChatMessage | BattlePackage | GameEnd | GameDisconnection;
 const isChatMessage = (event: BattleEvent): event is ChatMessage =>
   (event as ChatMessage).message !== undefined;
 
-const isDisconnectionMessage = (event: BattleEvent): event is GameDisconnection =>
+const isDisconnectionMessage = (
+  event: BattleEvent
+): event is GameDisconnection =>
   (event as GameDisconnection).userID !== undefined;
 
 const isEndgameQuery = (event: BattleEvent): event is GameEnd =>
@@ -162,7 +164,10 @@ export class Battle {
   }
 
   private checkUserSocketValidity(): boolean {
-    return (this.users[0].socket?.connected === true && this.users[1].socket?.connected === true);
+    return (
+      this.users[0].socket?.connected === true &&
+      this.users[1].socket?.connected === true
+    );
   }
 
   // -------------------------------------- EVENT HANDLER -----------------------------------
@@ -170,7 +175,7 @@ export class Battle {
   public instantiateEvent(): void {
     const eventId = `match-${this.matchUUID}`;
 
-    this.users.forEach(user => {
+    this.users.forEach((user: userData) => {
       if (user.socket) {
         user.socket.join("MATCH" + this.matchUUID);
         user.socket.on("MATCH_DISCONNECTION", () => {
@@ -179,11 +184,17 @@ export class Battle {
       }
     });
     this.users[0].socket?.on(eventId, async (event: BattleEvent) => {
-      if (!this.checkUserSocketValidity()) { this.handleUserDisconnection(); return; }
+      if (!this.checkUserSocketValidity()) {
+        this.handleUserDisconnection();
+        return;
+      }
       await this.handleIncomingEvents(1, event);
     });
     this.users[1].socket?.on(eventId, async (event: BattleEvent) => {
-      if (!this.checkUserSocketValidity()) { this.handleUserDisconnection(); return; }
+      if (!this.checkUserSocketValidity()) {
+        this.handleUserDisconnection();
+        return;
+      }
       await this.handleIncomingEvents(0, event);
     });
   }
