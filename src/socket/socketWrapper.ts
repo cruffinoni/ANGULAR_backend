@@ -1,13 +1,18 @@
-import {Server, Socket} from "socket.io";
-import {Battle} from "../battle/battle";
+import { Server, Socket } from "socket.io";
+import { Battle } from "../battle/battle";
 import * as http from "http";
+import { FifoMatchmaker } from "../matchmaking/matchmaking";
+import { User } from ".prisma/client";
 
 /**
  * Class that is going to handle the socket of every user
  */
 export class SocketWrapper {
-  clientMap: Map<string, Socket> = new Map<string, Socket>();
+  private battles: Battle[] = [];
   private readonly serverSocket: Server;
+  private matchmaking = new FifoMatchmaker(SocketWrapper.startMatch, this);
+
+  clientMap: Map<string, Socket> = new Map<string, Socket>();
 
   constructor(httpNetwork: http.Server | number) {
     this.serverSocket = new Server(httpNetwork, {
@@ -24,20 +29,20 @@ export class SocketWrapper {
   // ------------------------------------------------- GETTER --------------------------------------------
 
   /**
-   * return the server socket
-   * @returns the server socket
-   */
-  public get getServerSocket(): Server {
-    return this.serverSocket;
-  }
-
-  /**
    * return the socket of a specific user
    * @param userID the userID of the socket
    * @returns the socket
    */
   public getUserSocket(userID: string): Socket | undefined {
     return this.clientMap.get(userID);
+  }
+
+  /**
+   * return the server socket
+   * @returns the server socket
+   */
+  public get getServerSocket(): Server {
+    return this.serverSocket;
   }
 
   // ------------------------------------------ SETUP EVENT FUNCTION -------------------------------------
@@ -68,6 +73,26 @@ export class SocketWrapper {
     const userID = socket.handshake.query.userID as string;
     this.clientMap.set(userID, socket);
 
+    this.battles.forEach((battle: Battle) => {
+      if (battle.users[0].id === userID) {
+        battle.users[0].socket = socket;
+        battle.instantiateEvent();
+      }
+      if (battle.users[1].id === userID) {
+        battle.users[1].socket = socket;
+        battle.instantiateEvent();
+      }
+    });
+
+    socket.on("joinMatchMaking", (data) => {
+      console.log("joinMatchMaking:", data);
+      this.matchmaking.joinQueue(Number(data));
+    });
+
+    socket.on("leaveMatchMaking", (data) => {
+      console.log("leaveMatchMaking:", data);
+    });
+
     socket.on("startMatch", (data) => {
       console.log("start match with:", data);
       new Battle(data.data.userA, data.data.userB, this);
@@ -77,6 +102,19 @@ export class SocketWrapper {
     });
 
     console.log("new connection arrived id:", userID);
+  }
+
+  private static startMatch(users: User[], instance: SocketWrapper): void {
+    if (users.length === 2) {
+      console.log("start matchmaking match with:", users);
+      const tmp = new Battle(
+        users[0].id.toString(),
+        users[1].id.toString(),
+        instance
+      );
+      console.log("BATTLE BATTLE BATTLE BATTLE ", instance.battles);
+      instance.battles.push(tmp);
+    }
   }
 
   private onUserSocketDisconnect(reason: string, id: string) {

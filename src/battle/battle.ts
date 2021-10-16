@@ -1,9 +1,9 @@
-import {v4 as uuidv4} from "uuid";
-import {SocketWrapper} from "../socket/socketWrapper";
-import {BattleState} from "../enum/battleState";
-import {Socket} from "socket.io";
-import {BattlePackage, GameEnd} from "../enum/eventType";
-import {CalculateMMRGain} from "../mmr/utils";
+import { v4 as uuidv4 } from "uuid";
+import { SocketWrapper } from "../socket/socketWrapper";
+import { BattleState } from "../enum/battleState";
+import { Socket } from "socket.io";
+import { BattlePackage, GameEnd } from "../enum/eventType";
+import { CalculateMMRGain } from "../mmr/utils";
 import serverInstance from "../server/server";
 
 type userData = {
@@ -75,7 +75,6 @@ export class Battle {
         if (!user.socket) {
           user.socket = this.serverSocket.getUserSocket(user.id);
           if (user.socket) {
-            user.socket.join("MATCH" + this.matchUUID);
             user.socket.emit("matchUUID", this.matchUUID);
             user.socket.emit(`match-${this.matchUUID}userIdx`, user.index);
           }
@@ -114,8 +113,6 @@ export class Battle {
       .emit(eventType, data);
   }
 
-  // -------------------------------------- EVENT HANDLER -----------------------------------
-
   private async addMmrToWinner(winnerIdx: number): Promise<void> {
     const user1 = await serverInstance.router.getDatabase.getUserById(
       +this.users[0].id
@@ -151,8 +148,13 @@ export class Battle {
     }
   }
 
-  private instantiateEvent() {
+  // -------------------------------------- EVENT HANDLER -----------------------------------
+
+  public instantiateEvent(): void {
     const eventId = `match-${this.matchUUID}`;
+    this.users[0].socket?.join("MATCH" + this.matchUUID);
+    this.users[1].socket?.join("MATCH" + this.matchUUID);
+
     this.users[0].socket?.on(eventId, async (event: BattleEvent) => {
       await this.handleIncomingEvents(1, event);
     });
