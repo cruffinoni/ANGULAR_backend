@@ -150,7 +150,7 @@ export class Battle {
 
   // -------------------------------------- EVENT HANDLER -----------------------------------
 
-  private instantiateEvent() {
+  public instantiateEvent(): void {
     const eventId = `match-${this.matchUUID}`;
     this.users[0].socket?.join("MATCH" + this.matchUUID);
     this.users[1].socket?.join("MATCH" + this.matchUUID);
