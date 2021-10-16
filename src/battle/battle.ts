@@ -1,9 +1,9 @@
-import {v4 as uuidv4} from "uuid";
-import {SocketWrapper} from "../socket/socketWrapper";
-import {BattleState} from "../enum/battleState";
-import {Socket} from "socket.io";
-import {BattlePackage, GameEnd} from "../enum/eventType";
-import {CalculateMMRGain} from "../mmr/utils";
+import { v4 as uuidv4 } from "uuid";
+import { SocketWrapper } from "../socket/socketWrapper";
+import { BattleState } from "../enum/battleState";
+import { Socket } from "socket.io";
+import { BattlePackage, GameEnd } from "../enum/eventType";
+import { CalculateMMRGain } from "../mmr/utils";
 import serverInstance from "../server/server";
 
 type userData = {
@@ -115,25 +115,25 @@ export class Battle {
 
   private async addMmrToWinner(winnerIdx: number): Promise<void> {
     const user1 = await serverInstance.router.getDatabase.getUserById(
-        +this.users[0].id
+      +this.users[0].id
     );
     const user2 = await serverInstance.router.getDatabase.getUserById(
-        +this.users[1].id
+      +this.users[1].id
     );
     if (user1 == null || user2 == null) {
       console.error(
-          `[end-game] one of the user id is invalid: "${this.users[0].id}" or "${this.users[1].id}"`
+        `[end-game] one of the user id is invalid: "${this.users[0].id}" or "${this.users[1].id}"`
       );
       return;
     }
     const gain = CalculateMMRGain(user1, user2);
     await serverInstance.router.getDatabase.addMMR(
-        +this.users[winnerIdx].id,
-        +gain
+      +this.users[winnerIdx].id,
+      +gain
     );
     await serverInstance.router.getDatabase.addMMR(
-        +this.users[winnerIdx === 1 ? 0 : 1].id,
-        -gain
+      +this.users[winnerIdx === 1 ? 0 : 1].id,
+      -gain
     );
   }
 
@@ -150,7 +150,7 @@ export class Battle {
 
   // -------------------------------------- EVENT HANDLER -----------------------------------
 
-  private instantiateEvent() {
+  public instantiateEvent(): void {
     const eventId = `match-${this.matchUUID}`;
     this.users[0].socket?.join("MATCH" + this.matchUUID);
     this.users[1].socket?.join("MATCH" + this.matchUUID);

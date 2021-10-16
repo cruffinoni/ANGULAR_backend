@@ -1,5 +1,5 @@
-import {Server, Socket} from "socket.io";
-import {Battle} from "../battle/battle";
+import { Server, Socket } from "socket.io";
+import { Battle } from "../battle/battle";
 import * as http from "http";
 import { FifoMatchmaker } from "../matchmaking/matchmaking";
 import { User } from ".prisma/client";
@@ -10,7 +10,7 @@ import { User } from ".prisma/client";
 export class SocketWrapper {
   private battles: Battle[] = [];
   private readonly serverSocket: Server;
-  private matchmaking = new FifoMatchmaker(this.startMatch, this);
+  private matchmaking = new FifoMatchmaker(SocketWrapper.startMatch, this);
 
   clientMap: Map<string, Socket> = new Map<string, Socket>();
 
@@ -73,27 +73,21 @@ export class SocketWrapper {
     const userID = socket.handshake.query.userID as string;
     this.clientMap.set(userID, socket);
 
-
-
     this.battles.forEach((battle: Battle) => {
-        if (battle.users[0].id === userID) {
-          battle.users[0].socket = socket;
-          battle.instantiateEvent();
-        }
-        if (battle.users[1].id === userID) {
-          battle.users[1].socket = socket;
-          battle.instantiateEvent();
-        }
+      if (battle.users[0].id === userID) {
+        battle.users[0].socket = socket;
+        battle.instantiateEvent();
+      }
+      if (battle.users[1].id === userID) {
+        battle.users[1].socket = socket;
+        battle.instantiateEvent();
+      }
     });
-
-
-
 
     socket.on("joinMatchMaking", (data) => {
       console.log("joinMatchMaking:", data);
       this.matchmaking.joinQueue(Number(data));
     });
-
 
     socket.on("leaveMatchMaking", (data) => {
       console.log("leaveMatchMaking:", data);
@@ -110,10 +104,14 @@ export class SocketWrapper {
     console.log("new connection arrived id:", userID);
   }
 
-  private startMatch(users: User[], instance: SocketWrapper): void {
+  private static startMatch(users: User[], instance: SocketWrapper): void {
     if (users.length === 2) {
       console.log("start matchmaking match with:", users);
-      const tmp = new Battle(users[0].id.toString(), users[1].id.toString(), instance);
+      const tmp = new Battle(
+        users[0].id.toString(),
+        users[1].id.toString(),
+        instance
+      );
       console.log("BATTLE BATTLE BATTLE BATTLE ", instance.battles);
       instance.battles.push(tmp);
     }
