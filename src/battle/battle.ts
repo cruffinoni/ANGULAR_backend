@@ -143,6 +143,7 @@ export class Battle {
       this.sendMessageToRoom(eventId, event as ChatMessage);
     } else if (isEndgameQuery(event)) {
       await this.addMmrToWinner(event.winner);
+      this.serverSocket.matchEnd(this);
     } else {
       this.users[index].socket?.emit(eventId, event as BattlePackage);
     }

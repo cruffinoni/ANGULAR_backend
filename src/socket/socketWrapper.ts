@@ -90,7 +90,7 @@ export class SocketWrapper {
     });
 
     socket.on("leaveMatchMaking", (data) => {
-      console.log("leaveMatchMaking:", data);
+      this.matchmaking.leaveQueue(Number(data));
     });
 
     socket.on("startMatch", (data) => {
@@ -114,6 +114,13 @@ export class SocketWrapper {
       );
       console.log("BATTLE BATTLE BATTLE BATTLE ", instance.battles);
       instance.battles.push(tmp);
+    }
+  }
+
+  public matchEnd(battleInstance: Battle): void {
+    const idx = this.battles.indexOf(battleInstance);
+    if (idx !== -1) {
+      this.battles.splice(idx, 1);
     }
   }
 

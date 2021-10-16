@@ -17,6 +17,14 @@ export class FifoMatchmaker {
 		setInterval(this.FifoMatch, this.checkInterval);
 	}
 
+    private debug():void {
+        console.log("------------ DEBUG ------------");
+        this.playerQueue.forEach((player: User) => {
+            console.log("player", player.pseudo, "mmr:", player.mmr);
+        });
+        console.log("------------ END --------------");
+    }
+
     public async joinQueue(userID: number): Promise<void> {
         const user = await this.db.getUserById(userID);
         if (user && !this.playerQueue.includes(user)) {
