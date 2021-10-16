@@ -1,10 +1,11 @@
-import {Request, Response, Router} from "express";
-import {SubRouter} from "./controller";
-import {PingRouter} from "../../ping/router";
-import {Database} from "../../database/database";
-import {AuthRouter} from "../../auth/router";
-import {MMRRouter} from "../../mmr/router";
-import {FriendRouter} from "../../friends/router";
+import { Request, Response, Router } from "express";
+import { SubRouter } from "./controller";
+import { PingRouter } from "../../ping/router";
+import { Database } from "../../database/database";
+import { AuthRouter } from "../../auth/router";
+import { MMRRouter } from "../../mmr/router";
+import { FriendRouter } from "../../friends/router";
+import { UserRouter } from "../../user/router";
 
 export class MainRouter {
   private db = new Database();
@@ -14,6 +15,7 @@ export class MainRouter {
     new AuthRouter(this.db),
     new MMRRouter(this.db),
     new FriendRouter(this.db),
+    new UserRouter(this.db),
   ];
 
   get getRouter(): Router {

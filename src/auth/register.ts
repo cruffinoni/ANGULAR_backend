@@ -40,6 +40,7 @@ export class Register implements Route {
           pseudo: req.body.pseudo,
           token: JWTClass.encode(user.id),
           mmr: user.mmr,
+          avatar: user.avatar,
         });
       } catch (e) {
         console.log(e);

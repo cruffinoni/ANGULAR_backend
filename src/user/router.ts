@@ -1,11 +1,10 @@
 import { SubRouter } from "../server/api/controller";
 import { Database } from "../database/database";
-import { Ladder } from "./ladder";
-import { MMR } from "./mmr";
+import { Edit } from "./edit";
 
-export class MMRRouter extends SubRouter {
-  basePath = "/mmr";
-  routes = [new Ladder(), new MMR()];
+export class UserRouter extends SubRouter {
+  basePath = "/user";
+  routes = [new Edit()];
 
   constructor(db: Database) {
     super(db);
