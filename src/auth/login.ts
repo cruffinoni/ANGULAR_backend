@@ -45,6 +45,8 @@ export class Login implements Route {
             pseudo: req.body.pseudo,
             token: JWTClass.encode(user.id),
             mmr: user.mmr,
+            email: user.email,
+            avatar: user.avatar,
           });
         }
       } catch (e) {
