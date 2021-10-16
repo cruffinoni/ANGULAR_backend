@@ -12,7 +12,7 @@ export class Database {
   async createUser(
     email: string,
     password: string,
-    pseudo: string
+    pseudo: string,
   ): Promise<User> {
     return await this.prismaClient.user.create({
       data: {
