@@ -1,19 +1,25 @@
-import {Friends, Friendship, PrismaClient, User} from "@prisma/client";
+import { Friends, Friendship, PrismaClient, User } from "@prisma/client";
 import sha256 = require("crypto-js/sha256");
 
 export class Database {
   private prismaClient: PrismaClient = new PrismaClient();
 
+  public static encryptPassword = (input: string): string =>
+    sha256(input).toString();
+
+  public static defaultAvatar = "../../assets/img/avatar2.png";
+
   async createUser(
     email: string,
     password: string,
-    pseudo: string
+    pseudo: string,
   ): Promise<User> {
     return await this.prismaClient.user.create({
       data: {
         email: email,
         pseudo: pseudo,
-        password: sha256(password).toString(),
+        password: Database.encryptPassword(password),
+        avatar: Database.defaultAvatar,
       },
     });
   }
@@ -22,7 +28,7 @@ export class Database {
     return await this.prismaClient.user.findFirst({
       where: {
         pseudo: pseudo,
-        password: sha256(password).toString(),
+        password: Database.encryptPassword(password),
       },
     });
   }
@@ -39,6 +45,17 @@ export class Database {
     return await this.prismaClient.user.findFirst({
       where: {
         pseudo: pseudo,
+      },
+    });
+  }
+
+  async updateUser(data: User): Promise<void> {
+    await this.prismaClient.user.update({
+      data: {
+        ...data,
+      },
+      where: {
+        id: data.id,
       },
     });
   }
