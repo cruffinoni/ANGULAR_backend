@@ -112,7 +112,6 @@ export class SocketWrapper {
         users[1].id.toString(),
         instance
       );
-      console.log("BATTLE BATTLE BATTLE BATTLE ", instance.battles);
       instance.battles.push(tmp);
     }
   }

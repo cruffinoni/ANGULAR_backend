@@ -12,3 +12,7 @@ export type GameEnd = {
   gameEnded: true;
   winner: number;
 };
+
+export type GameDisconnection = {
+  userID: string;
+}

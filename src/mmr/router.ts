@@ -2,11 +2,10 @@ import { SubRouter } from "../server/api/controller";
 import { Database } from "../database/database";
 import { Ladder } from "./ladder";
 import { MMR } from "./mmr";
-import { EndGameMMR } from './endGameMmrUpdate';
 
 export class MMRRouter extends SubRouter {
   basePath = "/mmr";
-  routes = [new Ladder(), new MMR(), new EndGameMMR()];
+  routes = [new Ladder(), new MMR()];
 
   constructor(db: Database) {
     super(db);
