@@ -8,6 +8,7 @@ import { User } from ".prisma/client";
  * Class that is going to handle the socket of every user
  */
 export class SocketWrapper {
+  private battles: Battle[] = [];
   private readonly serverSocket: Server;
   private matchmaking = new FifoMatchmaker(this.startMatch, this);
 
@@ -22,6 +23,7 @@ export class SocketWrapper {
         credentials: true,
       },
     });
+    this.battles = [];
     this.startSocketIO();
   }
 
@@ -71,11 +73,24 @@ export class SocketWrapper {
     // get in the query param the id of the user that is connecting
     const userID = socket.handshake.query.userID as string;
     this.clientMap.set(userID, socket);
-    console.log("NEW CONNECTION: ", socket);
 
-    socket.on("reconnect", () => {  
-      console.log("RECONNECTION", socket);
+    
+
+    this.battles.forEach((battle: Battle) => {
+        if (battle.users[0].id === userID) {
+          battle.users[0].socket = socket;
+          console.log("REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT ");
+          battle.instantiateEvent();
+        }
+        if (battle.users[1].id === userID) {
+          console.log("REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT ");
+          battle.users[1].socket = socket;
+          battle.instantiateEvent();
+        }
     });
+
+
+
 
     socket.on("joinMatchMaking", (data) => {
       console.log("joinMatchMaking:", data);
@@ -101,7 +116,7 @@ export class SocketWrapper {
   private startMatch(users: User[], instance: SocketWrapper): void {
     if (users.length === 2) {
       console.log("start matchmaking match with:", users);
-      new Battle(users[0].id.toString(), users[1].id.toString(), instance);
+      this.battles.push(new Battle(users[0].id.toString(), users[1].id.toString(), instance));
     }
   }
 

@@ -68,8 +68,8 @@ export class Battle {
         if (!user.socket) {
           user.socket = this.serverSocket.getUserSocket(user.id);
           if (user.socket) {
-            user.socket.join("MATCH" + this.matchUUID);
             user.socket.emit("matchUUID", this.matchUUID);
+            console.log("send user index");
             user.socket.emit(`match-${this.matchUUID}userIdx`, user.index);
           }
         }
@@ -109,8 +109,13 @@ export class Battle {
 
   // -------------------------------------- EVENT HANDLER -----------------------------------
 
-  private instantiateEvent() {
+  public instantiateEvent(): void {
+    console.log("package from 1", this.users[0].socket?.id);
+    console.log("package from 2", this.users[1].socket?.id);
     const eventId = `match-${this.matchUUID}`;
+    this.users[0].socket?.join("MATCH" + this.matchUUID);
+    this.users[1].socket?.join("MATCH" + this.matchUUID);
+
     this.users[0].socket?.on(eventId, (event: BattlePackage | ChatMessage) => {
       if (isChatMessage(event)) {
         this.sendMessageToRoom(eventId, event as ChatMessage);
