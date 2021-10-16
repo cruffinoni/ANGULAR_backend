@@ -1,20 +1,14 @@
-export enum EventType {
-  MoveRight = "right",
-  MoveLeft = "left",
-  Jump = "jump",
-  Crouch = "crouch",
-  AttackFeet = "feet",
-  AttackHand = "hand",
-  AttackThrow = "throw",
-  Idle = "idle",
-}
+export type BattlePackage = {
+  userID?: string;
+  userIdx?: number;
+  position: {
+    x: number;
+    y: number;
+  };
+  state: string;
+};
 
-export interface BattlePackage {
-    userID?: string,
-    userIdx?: number
-    position: {
-        x: number,
-        y: number
-    }
-    state: string
-}
+export type GameEnd = {
+  gameEnded: true;
+  winner: number;
+};

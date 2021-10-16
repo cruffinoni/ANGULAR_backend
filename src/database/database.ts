@@ -1,4 +1,4 @@
-import { Friends, Friendship, PrismaClient, User } from "@prisma/client";
+import {Friends, Friendship, PrismaClient, User} from "@prisma/client";
 import sha256 = require("crypto-js/sha256");
 
 export class Database {
@@ -43,7 +43,7 @@ export class Database {
     });
   }
 
-  async getTopLadder(limit = 10): Promise<User[] | null> {
+  async getTopLadder(limit: number): Promise<User[] | null> {
     return await this.prismaClient.user.findMany({
       orderBy: {
         mmr: "desc",
@@ -86,6 +86,7 @@ export class Database {
       },
     });
   }
+
   async getFriendshipAnyRelation(
     user1: number,
     user2: number

@@ -1,10 +1,10 @@
-import { User } from "@prisma/client";
+import {User} from "@prisma/client";
 
-const linearFunction = (x: number, y: number) => Math.abs(x - y) * 0.75;
+const linearFunction = (x: number, y: number) => Math.sqrt(Math.abs(x - y));
 
 const miniGain = 100;
 
-export const calculateMMRGain = (player1: User, player2: User): number => {
+export const CalculateMMRGain = (player1: User, player2: User): number => {
   const gain = linearFunction(player1.mmr, player2.mmr);
-  return gain < miniGain ? miniGain : gain;
+  return Math.round(gain < miniGain ? miniGain : gain);
 };

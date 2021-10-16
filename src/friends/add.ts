@@ -1,14 +1,10 @@
-import { Route, SubRouter } from "../server/api/controller";
-import { Request, Response } from "express";
-import {
-  formatInternalServerErrorMessage,
-  formatOkMessage,
-  formatReturnedMessage,
-} from "../server/api/utils";
+import {Route, SubRouter} from "../server/api/controller";
+import {Request, Response} from "express";
+import {formatInternalServerErrorMessage, formatOkMessage, formatReturnedMessage,} from "../server/api/utils";
 import httpCode from "../server/api/httpCode";
 import serverInstance from "../server/server";
-import { NotificationType } from "../socket/notification";
-import { Friendship } from "@prisma/client";
+import {NotificationType} from "../socket/notification";
+import {Friendship} from "@prisma/client";
 
 export class AddFriend implements Route {
   readonly name: string = "/request";
@@ -16,7 +12,7 @@ export class AddFriend implements Route {
   validationSchema = {
     type: "object",
     properties: {
-      pseudo: { type: "string" },
+      pseudo: {type: "string"},
     },
     required: ["pseudo"],
     additionalProperties: false,
@@ -41,14 +37,14 @@ export class AddFriend implements Route {
           return formatReturnedMessage(
             res,
             httpCode.NOT_FOUND,
-            "user not found",
+            "user not found"
           );
         }
         if (target.id == res.locals.authorization.id) {
           return formatReturnedMessage(
             res,
             httpCode.BAD_REQUEST,
-            "author can't add himself",
+            "author can't add himself"
           );
         }
         const friendship = await router.getDatabase.getFriendshipAnyRelation(

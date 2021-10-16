@@ -1,5 +1,5 @@
-import { Server, Socket } from "socket.io";
-import { Battle } from "../battle/battle";
+import {Server, Socket} from "socket.io";
+import {Battle} from "../battle/battle";
 import * as http from "http";
 import { FifoMatchmaker } from "../matchmaking/matchmaking";
 import { User } from ".prisma/client";
@@ -23,7 +23,6 @@ export class SocketWrapper {
         credentials: true,
       },
     });
-    this.battles = [];
     this.startSocketIO();
   }
 
@@ -74,7 +73,7 @@ export class SocketWrapper {
     const userID = socket.handshake.query.userID as string;
     this.clientMap.set(userID, socket);
 
-    
+
 
     this.battles.forEach((battle: Battle) => {
         if (battle.users[0].id === userID) {
@@ -95,7 +94,7 @@ export class SocketWrapper {
       this.matchmaking.joinQueue(Number(data));
     });
 
-    
+
     socket.on("leaveMatchMaking", (data) => {
       console.log("leaveMatchMaking:", data);
     });

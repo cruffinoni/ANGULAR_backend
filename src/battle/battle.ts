@@ -1,8 +1,10 @@
-import { v4 as uuidv4 } from "uuid";
-import { SocketWrapper } from "../socket/socketWrapper";
-import { BattleState } from "../enum/battleState";
-import { Socket } from "socket.io";
-import { BattlePackage } from "../enum/eventType";
+import {v4 as uuidv4} from "uuid";
+import {SocketWrapper} from "../socket/socketWrapper";
+import {BattleState} from "../enum/battleState";
+import {Socket} from "socket.io";
+import {BattlePackage, GameEnd} from "../enum/eventType";
+import {CalculateMMRGain} from "../mmr/utils";
+import serverInstance from "../server/server";
 
 type userData = {
   id: string;
@@ -15,8 +17,13 @@ type ChatMessage = {
   message: string;
 };
 
-const isChatMessage = (x: ChatMessage | BattlePackage): x is ChatMessage =>
-  (x as ChatMessage).message !== undefined;
+type BattleEvent = ChatMessage | BattlePackage | GameEnd;
+
+const isChatMessage = (event: BattleEvent): event is ChatMessage =>
+  (event as ChatMessage).message !== undefined;
+
+const isEndgameQuery = (event: BattleEvent): event is GameEnd =>
+  (event as GameEnd).winner !== undefined;
 
 export class Battle {
   currentState: BattleState = BattleState.STARTING;
@@ -69,7 +76,6 @@ export class Battle {
           user.socket = this.serverSocket.getUserSocket(user.id);
           if (user.socket) {
             user.socket.emit("matchUUID", this.matchUUID);
-            console.log("send user index");
             user.socket.emit(`match-${this.matchUUID}userIdx`, user.index);
           }
         }
@@ -107,28 +113,53 @@ export class Battle {
       .emit(eventType, data);
   }
 
+  private async addMmrToWinner(winnerIdx: number): Promise<void> {
+    const user1 = await serverInstance.router.getDatabase.getUserById(
+        +this.users[0].id
+    );
+    const user2 = await serverInstance.router.getDatabase.getUserById(
+        +this.users[1].id
+    );
+    if (user1 == null || user2 == null) {
+      console.error(
+          `[end-game] one of the user id is invalid: "${this.users[0].id}" or "${this.users[1].id}"`
+      );
+      return;
+    }
+    const gain = CalculateMMRGain(user1, user2);
+    await serverInstance.router.getDatabase.addMMR(
+        +this.users[winnerIdx].id,
+        +gain
+    );
+    await serverInstance.router.getDatabase.addMMR(
+        +this.users[winnerIdx === 1 ? 0 : 1].id,
+        -gain
+    );
+  }
+
+  private async handleIncomingEvents(index: number, event: BattleEvent) {
+    const eventId = `match-${this.matchUUID}`;
+    if (isChatMessage(event)) {
+      this.sendMessageToRoom(eventId, event as ChatMessage);
+    } else if (isEndgameQuery(event)) {
+      await this.addMmrToWinner(event.winner);
+    } else {
+      this.users[index].socket?.emit(eventId, event as BattlePackage);
+    }
+  }
+
   // -------------------------------------- EVENT HANDLER -----------------------------------
 
-  public instantiateEvent(): void {
-    console.log("package from 1", this.users[0].socket?.id);
-    console.log("package from 2", this.users[1].socket?.id);
+  private instantiateEvent() {
     const eventId = `match-${this.matchUUID}`;
     this.users[0].socket?.join("MATCH" + this.matchUUID);
     this.users[1].socket?.join("MATCH" + this.matchUUID);
 
-    this.users[0].socket?.on(eventId, (event: BattlePackage | ChatMessage) => {
-      if (isChatMessage(event)) {
-        this.sendMessageToRoom(eventId, event as ChatMessage);
-      } else {
-        this.users[1].socket?.emit(eventId, event as BattlePackage);
-      }
+    this.users[0].socket?.on(eventId, async (event: BattleEvent) => {
+      await this.handleIncomingEvents(1, event);
     });
-    this.users[1].socket?.on(eventId, (event: BattlePackage | ChatMessage) => {
-      if (isChatMessage(event)) {
-        this.sendMessageToRoom(eventId, event as ChatMessage);
-      } else {
-        this.users[0].socket?.emit(eventId, event as BattlePackage);
-      }
+    this.users[1].socket?.on(eventId, async (event: BattleEvent) => {
+      await this.handleIncomingEvents(0, event);
     });
   }
 }
