@@ -79,11 +79,9 @@ export class SocketWrapper {
     this.battles.forEach((battle: Battle) => {
         if (battle.users[0].id === userID) {
           battle.users[0].socket = socket;
-          console.log("REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT ");
           battle.instantiateEvent();
         }
         if (battle.users[1].id === userID) {
-          console.log("REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT REFAIT ");
           battle.users[1].socket = socket;
           battle.instantiateEvent();
         }
@@ -116,7 +114,9 @@ export class SocketWrapper {
   private startMatch(users: User[], instance: SocketWrapper): void {
     if (users.length === 2) {
       console.log("start matchmaking match with:", users);
-      this.battles.push(new Battle(users[0].id.toString(), users[1].id.toString(), instance));
+      const tmp = new Battle(users[0].id.toString(), users[1].id.toString(), instance);
+      console.log("BATTLE BATTLE BATTLE BATTLE ", instance.battles);
+      instance.battles.push(tmp);
     }
   }
 
