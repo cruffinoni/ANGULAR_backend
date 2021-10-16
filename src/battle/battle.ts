@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { SocketWrapper } from "../socket/socketWrapper";
 import { BattleState } from "../enum/battleState";
 import { Socket } from "socket.io";
-import { BattlePackage, GameEnd } from "../enum/eventType";
+import { BattlePackage, GameDisconnection, GameEnd } from "../enum/eventType";
 import { CalculateMMRGain } from "../mmr/utils";
 import serverInstance from "../server/server";
 
@@ -17,7 +17,7 @@ type ChatMessage = {
   message: string;
 };
 
-type BattleEvent = ChatMessage | BattlePackage | GameEnd;
+type BattleEvent = ChatMessage | BattlePackage | GameEnd | GameDisconnection;
 
 const isChatMessage = (event: BattleEvent): event is ChatMessage =>
   (event as ChatMessage).message !== undefined;
@@ -137,11 +137,20 @@ export class Battle {
     );
   }
 
+  private handleUserDisconnection(): void {
+    if (this.currentState === BattleState.PLAYING) {
+      this.currentState = BattleState.ENDED;
+      this.sendMessageToRoom("DISCONNECTION", 0);
+      this.serverSocket.matchEnd(this);
+    }
+  }
+
   private async handleIncomingEvents(index: number, event: BattleEvent) {
     const eventId = `match-${this.matchUUID}`;
     if (isChatMessage(event)) {
       this.sendMessageToRoom(eventId, event as ChatMessage);
     } else if (isEndgameQuery(event)) {
+      this.currentState = BattleState.ENDED;
       await this.addMmrToWinner(event.winner);
       this.serverSocket.matchEnd(this);
     } else {
@@ -149,17 +158,38 @@ export class Battle {
     }
   }
 
+  private checkUserSocketValidity(): boolean {
+    return (
+      this.users[0].socket?.connected === true &&
+      this.users[1].socket?.connected === true
+    );
+  }
+
   // -------------------------------------- EVENT HANDLER -----------------------------------
 
   public instantiateEvent(): void {
     const eventId = `match-${this.matchUUID}`;
-    this.users[0].socket?.join("MATCH" + this.matchUUID);
-    this.users[1].socket?.join("MATCH" + this.matchUUID);
 
+    this.users.forEach((user: userData) => {
+      if (user.socket) {
+        user.socket.join("MATCH" + this.matchUUID);
+        user.socket.on("MATCH_DISCONNECTION", () => {
+          this.handleUserDisconnection();
+        });
+      }
+    });
     this.users[0].socket?.on(eventId, async (event: BattleEvent) => {
+      if (!this.checkUserSocketValidity()) {
+        this.handleUserDisconnection();
+        return;
+      }
       await this.handleIncomingEvents(1, event);
     });
     this.users[1].socket?.on(eventId, async (event: BattleEvent) => {
+      if (!this.checkUserSocketValidity()) {
+        this.handleUserDisconnection();
+        return;
+      }
       await this.handleIncomingEvents(0, event);
     });
   }
