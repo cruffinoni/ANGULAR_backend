@@ -22,9 +22,6 @@ type BattleEvent = ChatMessage | BattlePackage | GameEnd | GameDisconnection;
 const isChatMessage = (event: BattleEvent): event is ChatMessage =>
   (event as ChatMessage).message !== undefined;
 
-const isDisconnectionMessage = (event: BattleEvent): event is GameDisconnection =>
-  (event as GameDisconnection).userID !== undefined;
-
 const isEndgameQuery = (event: BattleEvent): event is GameEnd =>
   (event as GameEnd).winner !== undefined;
 
