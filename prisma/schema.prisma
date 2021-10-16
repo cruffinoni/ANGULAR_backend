@@ -4,7 +4,7 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "darwin"]
 }
 
@@ -16,6 +16,7 @@ model User {
   email     String   @unique
   password  String
   mmr       Int      @default(1000)
+  avatar    String   @default("../../assets/img/avatar2.png")
 
   Friends Friends[]
 }
