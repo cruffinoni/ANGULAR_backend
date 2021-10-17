@@ -136,6 +136,21 @@ export class Battle {
       +this.users[winnerIdx === 1 ? 0 : 1].id,
       -gain
     );
+
+    const user1AfterUpdate = await serverInstance.router.getDatabase.getUserById(
+      +this.users[0].id
+    );
+    const user2AfterUpdate = await serverInstance.router.getDatabase.getUserById(
+      +this.users[1].id
+    );
+
+    if(user1AfterUpdate) {
+      this.users[0].socket?.emit('mmrUpdated', user1AfterUpdate.mmr);
+    }
+    if(user2AfterUpdate) {
+      this.users[1].socket?.emit('mmrUpdated', user2AfterUpdate.mmr);
+    }
+
   }
 
   private handleUserDisconnection(): void {
@@ -153,6 +168,7 @@ export class Battle {
     } else if (isEndgameQuery(event)) {
       this.currentState = BattleState.ENDED;
       await this.addMmrToWinner(event.winner);
+
       this.serverSocket.matchEnd(this);
     } else {
       this.users[index].socket?.emit(eventId, event as BattlePackage);
@@ -177,11 +193,6 @@ export class Battle {
 
     this.users[1].socket?.removeAllListeners(eventId);
     this.users[1].socket?.removeAllListeners("MATCH_DISCONNECTION");
-
-
-
-
-
 
     this.users.forEach((user: userData) => {
       if (user.socket) {
