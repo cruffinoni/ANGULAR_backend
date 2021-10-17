@@ -84,19 +84,8 @@ export class SocketWrapper {
       }
     });
 
-    socket.on("joinMatchMaking", (data) => {
-      console.log("joinMatchMaking:", data);
-      this.matchmaking.joinQueue(Number(data));
-    });
+    this.instanciateBattleEvent(socket);
 
-    socket.on("leaveMatchMaking", (data) => {
-      this.matchmaking.leaveQueue(Number(data));
-    });
-
-    socket.on("startMatch", (data) => {
-      console.log("start match with:", data);
-      new Battle(data.data.userA, data.data.userB, this);
-    });
     socket.on("disconnect", (reason: string) => {
       this.onUserSocketDisconnect(reason, userID);
     });
@@ -106,7 +95,7 @@ export class SocketWrapper {
 
   private static startMatch(users: User[], instance: SocketWrapper): void {
     if (users.length === 2) {
-      console.log("start matchmaking match with:", users);
+      console.log("start matchmaking battle match with:", users[0].id, "against", users[1].id);
       const tmp = new Battle(
         users[0].id.toString(),
         users[1].id.toString(),
@@ -114,6 +103,30 @@ export class SocketWrapper {
       );
       instance.battles.push(tmp);
     }
+  }
+
+  private instanciateBattleEvent(socket: Socket) {
+    socket.on("joinMatchMaking", (data) => {
+      console.log("joinMatchMaking:", data);
+      this.matchmaking.joinQueue(Number(data));
+    });
+
+    socket.on("leaveMatchMaking", (data) => {
+      this.matchmaking.leaveQueue(Number(data));
+    });
+
+    socket.on("friendBattle", (data) => {
+      console.log("data", data);
+      if (data.users.length === 2) {
+        console.log("start friend match with:", data.users[0], "against", data.users[1]);
+        const tmp = new Battle(
+          data.users[0],
+          data.users[1],
+          this
+        );
+        this.battles.push(tmp);
+      }
+    });
   }
 
   public matchEnd(battleInstance: Battle): void {

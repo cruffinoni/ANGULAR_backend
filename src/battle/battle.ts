@@ -108,6 +108,7 @@ export class Battle {
   }
 
   private sendMessageToRoom(eventType: string, data: number | ChatMessage) {
+    console.log("SEND MESSAGE TO ROOM", data);
     this.serverSocket.getServerSocket
       .to("MATCH" + this.matchUUID)
       .emit(eventType, data);
@@ -169,6 +170,18 @@ export class Battle {
 
   public instantiateEvent(): void {
     const eventId = `match-${this.matchUUID}`;
+    
+    // reset old listener
+    this.users[0].socket?.removeAllListeners(eventId);
+    this.users[0].socket?.removeAllListeners("MATCH_DISCONNECTION");
+
+    this.users[1].socket?.removeAllListeners(eventId);
+    this.users[1].socket?.removeAllListeners("MATCH_DISCONNECTION");
+
+
+
+
+
 
     this.users.forEach((user: userData) => {
       if (user.socket) {
