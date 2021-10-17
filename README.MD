@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://nodejs.org/en/" target="blank"><img src="./documentationAsset\Street_Fighter_old_logo.png" width="320" alt="NodeJS Logo" /></a>
+  <a href="https://nodejs.org/en/" target="blank"><img src="./documentationAsset/Street_Fighter_old_logo.png" width="320" alt="NodeJS Logo" /></a>
 </p>
 
 
@@ -90,4 +90,3 @@ $ npm run start:dev
 
 
 ### If you have any trouble to run/use the project please contact one of us.
-
